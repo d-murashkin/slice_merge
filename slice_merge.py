@@ -62,7 +62,24 @@ class TiledImage(object):
             ys = np.arange(0, Y + Y_sub, Y_sub)
         
         self.coords = [{'x_min': x, 'x_max': x + X_sub, 'y_min': y, 'y_max': y + Y_sub, 'subimage_location': (i, j)} for i, x in enumerate(xs) for j, y in enumerate(ys)]
+    
+    def split(self):
+        self.tiles = [Tile(self.image, item['x_min'], item['x_max'], item['y_min'], item['y_max']) for item in self.coords]
+    
+
+class Tile(object):
+    def __init__(self, image, x_min, x_max, y_min, y_max):
+        self.x_min = x_min
+        self.x_max = x_max
+        self.y_min = y_min
+        self.y_max = y_max
+        self.image = image[x_min:x_max, y_min:y_max]
                 
 
 if __name__ == '__main__':
     pass
+    image_path = ''
+    from PIL import Image
+    image = Image.open(image_path)
+    img = np.array(image)
+    img_split = TiledImage(img, 256)
