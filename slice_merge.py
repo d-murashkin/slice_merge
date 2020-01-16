@@ -16,6 +16,7 @@ class TiledImage(object):
         self.image = image
         self.keep_rest = keep_rest
         self.channels = channels
+        self.tiles = []
 
         """ Dimentions of the input image """
         if len(image.shape) == 2:
@@ -32,6 +33,8 @@ class TiledImage(object):
             print('Image has less than 2 dimentions or more than 3.')
             print('Currently such images are not supported.')
             return False
+        self.X = X
+        self.Y = Y
 
         """ Set tile width and hight """
         if tile_size:
@@ -64,7 +67,17 @@ class TiledImage(object):
         self.coords = [{'x_min': x, 'x_max': x + X_sub, 'y_min': y, 'y_max': y + Y_sub, 'subimage_location': (i, j)} for i, x in enumerate(xs) for j, y in enumerate(ys)]
     
     def split(self):
+        """ Split the image into tiles.
+            The list of tiles is available at self.tiles
+        """
         self.tiles = [Tile(self.image, item['x_min'], item['x_max'], item['y_min'], item['y_max']) for item in self.coords]
+
+    def merge(self):
+        """ Merge data from tiles into the large image.
+        """
+        self.output = np.zeros_like(self.image)
+        for tile in self.tiles:
+            self.output[tile.x_min:tile.x_max, tile.y_min:tile.y_max] = tile.image
     
 
 class Tile(object):
