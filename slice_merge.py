@@ -99,6 +99,27 @@ class TiledImage(object):
         else:
             map(fucntion, self.list_tiles())
     
+    def get_tile(self, i, j):
+        return self.data[i, j]
+
+    def set_tile(self, i, j, data):
+        if len(data.shape) == 2:
+            X, Y = data.shape
+            Z = 1
+        elif len(data.shape) == 3:
+            X, Y, Z = data.shape
+        else:
+            print('Data should be 2d or 3d array, got data shape {0}'.format(data.shape))
+            return False
+        if (X, Y, Z) != (self.X_sub, self.Y_sub, self.Z):
+            print("data dimentions {0} do not correspond the tile size {1}".forman(data.shape, (self.X_sub, self.Y_sub, self.Z)))
+            return False
+        try:
+            self.data[i, j] = data
+        except:
+            print('Something went wrong...')
+            return False
+    
 
 class Tile(object):
     def __init__(self, image, x_min, x_max, y_min, y_max):
