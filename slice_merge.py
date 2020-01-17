@@ -88,6 +88,17 @@ class TiledImage(object):
     def image(self):
         return np.hstack(np.hstack(self.data))[:self.X, :self.Y, :]
     
+    def apply(self, fucntion, parallel=False):
+        """ Apply the specified function to each tile.
+            The function must change the input values.
+        """
+        if parallel:
+            from multiprocessing import Pool
+            pool = Pool()
+            pool.map(fucntion, self.list_tiles())
+        else:
+            map(fucntion, self.list_tiles())
+    
 
 class Tile(object):
     def __init__(self, image, x_min, x_max, y_min, y_max):
