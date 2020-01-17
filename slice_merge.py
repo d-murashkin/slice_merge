@@ -17,14 +17,14 @@ class TiledImage(object):
 
         """ Dimentions of the input image """
         if len(image.shape) == 2:
-            self.X, self.Y = image.shape
-            self.Z = 1
+            image_copy = image[:, :, np.newaxis]
         elif len(image.shape) == 3:
-            self.X, self.Y, self.Z = image.shape
+            image_copy = image
         else:
             print('Image has less than 2 dimentions or more than 3.')
             print('Currently such images are not supported.')
             return False
+        self.X, self.Y, self.Z = image_copy.shape
 
         """ Set tile width and hight """
         if tile_size:
@@ -62,7 +62,7 @@ class TiledImage(object):
 
         """ Represent the image as an 5d array """
         image_eq_div = np.zeros((self.X_sub * self.X_num, self.Y_sub * self.Y_num, self.Z), dtype=image.dtype)
-        image_eq_div[:self.X, :self.Y, :] = image
+        image_eq_div[:self.X, :self.Y, :] = image_copy
         print(self.X, self.Y, image_eq_div.shape)
         print(self.X_num, self.Y_num)
         self.data = np.array([np.hsplit(item, self.Y_num) for item in np.vsplit(image_eq_div, self.X_num)])
@@ -132,8 +132,3 @@ class Tile(object):
 
 if __name__ == '__main__':
     pass
-    image_path = '/home/mura_dm/pictures/sea_ice.jpg'
-    from PIL import Image
-    image = Image.open(image_path)
-    img = np.array(image)
-    img_split = TiledImage(img, 256)
