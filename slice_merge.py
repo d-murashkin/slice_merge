@@ -17,14 +17,14 @@ class TiledImage(object):
 
         """ Dimentions of the input image """
         if len(image.shape) == 2:
-            self.image = image[:, :, np.newaxis]
+            self.X, self.Y = image.shape
+            self.Z = 1
         elif len(image.shape) == 3:
-            self.image = image
+            self.X, self.Y, self.Z = image.shape
         else:
             print('Image has less than 2 dimentions or more than 3.')
             print('Currently such images are not supported.')
             return False
-        self.X, self.Y, _ = self.image.shape
 
         """ Set tile width and hight """
         if tile_size:
@@ -32,6 +32,8 @@ class TiledImage(object):
                 self.X_sub, self.Y_sub = tile_size
             except:
                 self.X_sub = self.Y_sub = tile_size
+            self.X_num = int(np.ceil(self.X / self.X_sub))
+            self.Y_num = int(np.ceil(self.Y / self.Y_sub))
         elif number_of_tiles == 0:
             print('Either tile_size or number_of_tiles should be specified.')
             return False
@@ -44,6 +46,7 @@ class TiledImage(object):
             self.Y_sub = self.Y // self.Y_num
 
         """ Define grid """
+        '''
         if (not keep_rest) or (self.X % self.X_sub == 0):
             xs = np.arange(0, self.X, self.X_sub)
         else:
@@ -55,7 +58,16 @@ class TiledImage(object):
             ys = np.arange(0, self.Y + self.Y_sub, self.Y_sub)
         
         self.coords = [{'x_min': x, 'x_max': x + self.X_sub, 'y_min': y, 'y_max': y + self.Y_sub, 'subimage_location': (i, j)} for i, x in enumerate(xs) for j, y in enumerate(ys)]
+        '''
+
+        """ Represent the image as an 5d array """
+        image_eq_div = np.zeros((self.X_sub * self.X_num, self.Y_sub * self.Y_num, self.Z), dtype=image.dtype)
+        image_eq_div[:self.X, :self.Y, :] = image
+        print(self.X, self.Y, image_eq_div.shape)
+        print(self.X_num, self.Y_num)
+        self.data = np.array([np.hsplit(item, self.Y_num) for item in np.vsplit(image_eq_div, self.X_num)])
     
+    '''
     def split(self):
         """ Split the image into tiles.
             The list of tiles is available at self.tiles
@@ -68,6 +80,13 @@ class TiledImage(object):
         self.output = np.zeros_like(self.image)
         for tile in self.tiles:
             self.output[tile.x_min:tile.x_max, tile.y_min:tile.y_max] = tile.image
+    '''
+    def list_tiles(self):
+        i, j, X, Y, Z = self.data.shape
+        return np.reshape(self.data, (i * j, X, Y, Z))
+    
+    def image(self):
+        return np.hstack(np.hstack(self.data))[:self.X, :self.Y, :]
     
 
 class Tile(object):
@@ -81,7 +100,7 @@ class Tile(object):
 
 if __name__ == '__main__':
     pass
-    image_path = ''
+    image_path = '/home/mura_dm/pictures/sea_ice.jpg'
     from PIL import Image
     image = Image.open(image_path)
     img = np.array(image)
