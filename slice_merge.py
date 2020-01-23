@@ -64,9 +64,6 @@ class TiledImage(object):
             shape = data[0].shape
             data = np.array(data).reshape(self.X_num, self.Y_num, *shape)
             
-#        """ If input has 4 dimentions (last dimention might have been lost) """
-#        if len(data[0].shape) == 2:
-#            return np.hstack(np.hstack(data))[:self.X, :self.Y]
         return np.hstack(np.hstack(data))[:self.X, :self.Y]
 
     def image(self):
@@ -82,7 +79,6 @@ class TiledImage(object):
             from multiprocessing import Pool
             pool = Pool()
             result = pool.map(fucntion, self.list_tiles())
-#            pool.join()
         else:
             result = list(map(fucntion, self.list_tiles()))
         return result
