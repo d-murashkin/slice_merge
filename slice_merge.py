@@ -59,7 +59,15 @@ class TiledImage(object):
     def merge(self, data):
         """ Merge the *data* 5D array with results into a 3D array image size of the original image.
         """
-        return np.hstack(np.hstack(data))[:self.X, :self.Y, :]
+        """ If data is a list of tiles reshape it into a 2D array of tiles. """
+        if type(data) == list:
+            shape = data[0].shape
+            data = np.array(data).reshape(self.X_num, self.Y_num, *shape)
+            
+#        """ If input has 4 dimentions (last dimention might have been lost) """
+#        if len(data[0].shape) == 2:
+#            return np.hstack(np.hstack(data))[:self.X, :self.Y]
+        return np.hstack(np.hstack(data))[:self.X, :self.Y]
 
     def image(self):
         """ Return the original 3D array.
@@ -68,14 +76,16 @@ class TiledImage(object):
     
     def apply(self, fucntion, parallel=False):
         """ Apply the specified function to each tile.
-            The function must change the input values.
+            Note, that lambda functions do not work when parallel=True.
         """
         if parallel:
             from multiprocessing import Pool
             pool = Pool()
-            pool.map(fucntion, self.list_tiles())
+            result = pool.map(fucntion, self.list_tiles())
+#            pool.join()
         else:
-            map(fucntion, self.list_tiles())
+            result = list(map(fucntion, self.list_tiles()))
+        return result
     
     def get_tile(self, i, j):
         return self.data[i, j]
