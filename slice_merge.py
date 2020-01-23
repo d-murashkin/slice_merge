@@ -32,8 +32,13 @@ class TiledImage(object):
                 self.X_sub, self.Y_sub = tile_size
             except:
                 self.X_sub = self.Y_sub = tile_size
-            self.X_num = int(np.ceil(self.X / self.X_sub))
-            self.Y_num = int(np.ceil(self.Y / self.Y_sub))
+            if self.keep_rest:
+                self.X_num = int(np.ceil(self.X / self.X_sub))
+                self.Y_num = int(np.ceil(self.Y / self.Y_sub))
+            else:
+                self.X_num = self.X // self.X_sub
+                self.Y_num = self.Y // self.Y_sub
+
         elif number_of_tiles == 0:
             print('Either tile_size or number_of_tiles should be specified.')
             return False
@@ -42,12 +47,19 @@ class TiledImage(object):
                 self.X_num, self.Y_num = number_of_tiles
             except:
                 self.X_num = self.Y_num = number_of_tiles
-            self.X_sub = self.X // self.X_num
-            self.Y_sub = self.Y // self.Y_num
+            if self.keep_rest:
+                self.X_sub = int(np.ceil(self.X / self.X_num))
+                self.Y_sub = int(np.ceil(self.Y / self.Y_num))
+            else:
+                self.X_sub = self.X // self.X_num
+                self.Y_sub = self.Y // self.Y_num
 
         """ Represent the image as an 5d array """
         image_eq_div = np.zeros((self.X_sub * self.X_num, self.Y_sub * self.Y_num, self.Z), dtype=image.dtype)
-        image_eq_div[:self.X, :self.Y, :] = image_copy
+        if self.keep_rest:
+            image_eq_div[:self.X, :self.Y, :] = image_copy
+        else:
+            image_eq_div = image_copy[:image_eq_div.shape[0], :image_eq_div.shape[1]]
         print(self.X, self.Y, image_eq_div.shape)
         print(self.X_num, self.Y_num)
         self.data = np.array([np.hsplit(item, self.Y_num) for item in np.vsplit(image_eq_div, self.X_num)])
