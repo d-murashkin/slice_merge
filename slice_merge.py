@@ -72,7 +72,7 @@ class TiledImage(object):
         return reshaped
     
     def list_tile_indices(self):
-        return [(i, j) for i in range(self.X) for j in range(self.Y)]
+        return [(i, j) for i in range(self.X_num) for j in range(self.Y_num)]
     
     def merge(self, data):
         """ Merge the *data* 5D array with results into a 3D array image size of the original image.
