@@ -86,17 +86,21 @@ class TiledImage(object):
         """
         return self.merge(self.data)
     
-    def apply(self, fucntion, parallel=False):
+    def apply(self, fucntion, parallel=False, tile_dim=3):
         """ Apply the specified function to each tile.
             Note, that lambda functions do not work when parallel=True.
             Also note, this is not an in-place operation.
         """
+        if tile_dim == 2:
+            list_tiles = self.list_tiles(tile_2d=True)
+        else:
+            list_tiles = self.list_tiles()
         if parallel:
             from multiprocessing import Pool
             pool = Pool()
-            result = pool.map(fucntion, self.list_tiles())
+            result = pool.map(fucntion, list_tiles)
         else:
-            result = list(map(fucntion, self.list_tiles()))
+            result = list(map(fucntion, list_tiles))
         return result
     
     def get_tile(self, i, j):
