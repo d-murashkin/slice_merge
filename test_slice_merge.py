@@ -38,6 +38,7 @@ class TestTiledImage(unittest.TestCase):
         sliced = TiledImage(data, tile_size=2, keep_rest=True)
         result = sliced.merge(sliced.apply(lambda x: x**2))
         self.assertTrue(np.array_equal(result, true_result))
+        result = sliced.merge(sliced.apply(np.square, parallel=True))
 
 
 if __name__ == '__main__':
