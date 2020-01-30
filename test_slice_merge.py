@@ -31,6 +31,13 @@ class TestTiledImage(unittest.TestCase):
         sliced.set_tile(1, 0, new_tile)
         self.assertTrue(np.array_equal(sliced.image(), data))
         self.assertTrue(np.array_equal(new_tile, sliced.get_tile(1, 0)))
+    
+    def test_apply(self):
+        data = np.arange(25).reshape((5, 5, 1))
+        true_result = data**2
+        sliced = TiledImage(data, tile_size=2, keep_rest=True)
+        result = sliced.merge(sliced.apply(lambda x: x**2))
+        self.assertTrue(np.array_equal(result, true_result))
 
 
 if __name__ == '__main__':
