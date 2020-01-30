@@ -2,6 +2,7 @@
 A tool to slice large images into a set of small ones.
 And then to merge them back into the image of the original size.
 """
+from __future__ import division
 import numpy as np
 
 
@@ -32,6 +33,7 @@ class TiledImage(object):
                 self.X_sub, self.Y_sub = tile_size
             except:
                 self.X_sub = self.Y_sub = tile_size
+
             if self.keep_rest:
                 self.X_num = int(np.ceil(self.X / self.X_sub))
                 self.Y_num = int(np.ceil(self.Y / self.Y_sub))
@@ -64,9 +66,12 @@ class TiledImage(object):
         print(self.X_num, self.Y_num)
         self.data = np.array([np.hsplit(item, self.Y_num) for item in np.vsplit(image_eq_div, self.X_num)])
     
-    def list_tiles(self):
+    def list_tiles(self, tile_2d=False):
         i, j, X, Y, Z = self.data.shape
-        return np.reshape(self.data, (i * j, X, Y, Z))
+        reshaped = np.reshape(self.data, (i * j, X, Y, Z))
+        if tile_2d:
+            return reshaped[:, :, :, 0]
+        return reshaped
     
     def merge(self, data):
         """ Merge the *data* 5D array with results into a 3D array image size of the original image.
