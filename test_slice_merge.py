@@ -39,6 +39,12 @@ class TestTiledImage(unittest.TestCase):
         result = sliced.merge(sliced.apply(lambda x: x**2))
         self.assertTrue(np.array_equal(result, true_result))
         result = sliced.merge(sliced.apply(np.square, parallel=True))
+    
+    def test_list_tiles_2d(self):
+        data = np.arange(25).reshape((5, 5, 1))
+        true_result = np.arange(4).reshape((2, 2))
+        sliced = TiledImage(data, 2)
+        self.assertEqual(sliced.list_tiles(tile_2d=True)[0].shape, true_result.shape)
 
 
 if __name__ == '__main__':

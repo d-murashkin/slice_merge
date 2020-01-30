@@ -62,8 +62,6 @@ class TiledImage(object):
             image_eq_div[:self.X, :self.Y, :] = image_copy
         else:
             image_eq_div = image_copy[:image_eq_div.shape[0], :image_eq_div.shape[1]]
-        print(self.X, self.Y, image_eq_div.shape)
-        print(self.X_num, self.Y_num)
         self.data = np.array([np.hsplit(item, self.Y_num) for item in np.vsplit(image_eq_div, self.X_num)])
     
     def list_tiles(self, tile_2d=False):
