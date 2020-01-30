@@ -45,6 +45,15 @@ class TestTiledImage(unittest.TestCase):
         true_result = np.arange(4).reshape((2, 2))
         sliced = TiledImage(data, 2)
         self.assertEqual(sliced.list_tiles(tile_2d=True)[0].shape, true_result.shape)
+    
+    def test_list_indices(self):
+        data = np.arange(25).reshape((5, 5, 1))
+        sliced = TiledImage(data, tile_size=2)
+        tile_indices = sliced.list_tile_indices()
+        tile_list = sliced.list_tiles()
+        tile_by_index = sliced.get_tile(*tile_indices[1])
+        tile_from_list = tile_list[1]
+        self.assertTrue(np.array_equal(tile_from_list, tile_by_index))
 
 
 if __name__ == '__main__':
