@@ -91,6 +91,7 @@ class TiledImage(object):
     def apply(self, fucntion, parallel=False):
         """ Apply the specified function to each tile.
             Note, that lambda functions do not work when parallel=True.
+            Also note, this is not an in-place operation.
         """
         if parallel:
             from multiprocessing import Pool
