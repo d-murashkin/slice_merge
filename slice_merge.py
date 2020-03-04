@@ -12,9 +12,14 @@ class TiledImage(object):
         Both options can be integers or tuples.
         keep_rest option defines weather tiles of a smaller size should be kept.
     """
-    def __init__(self, image, tile_size=0, number_of_tiles=0, keep_rest=True):
+    def __init__(self, image, tile_size=0, number_of_tiles=0, keep_rest=True, offset=0):
         self.keep_rest = keep_rest
         self.tiles = []
+        self.offset = offset
+        try:
+            self.offset_x, self.offset_y = offset
+        except:
+            self.offset_x = self.offset_y = offset
 
         """ Dimentions of the input image """
         if len(image.shape) == 2:
@@ -26,6 +31,13 @@ class TiledImage(object):
             print('Currently such images are not supported.')
             return False
         self.X, self.Y, self.Z = image_copy.shape
+
+        """ If offset is not 0, extend the input image. """
+        if self.offset:
+            image_with_offset = np.zeros((self.X + self.offset_x, self.Y + self.offset_y, self.Z), dtype=image_copy.dtype)
+            image_with_offset[self.offset_x:, self.offset_y:] = image_copy
+            image_copy = image_with_offset
+            self.X, self.Y, self.Z = image_copy.shape
 
         """ Set tile width and hight """
         if tile_size:
@@ -82,7 +94,8 @@ class TiledImage(object):
             shape = data[0].shape
             data = np.array(data).reshape(self.X_num, self.Y_num, *shape)
             
-        return np.hstack(np.hstack(data))[:self.X, :self.Y]
+        merged = np.hstack(np.hstack(data))[self.offset_x:self.X, self.offset_y:self.Y]
+        return merged
 
     def image(self):
         """ Return the original 3D array.
