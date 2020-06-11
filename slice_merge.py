@@ -98,7 +98,6 @@ class TiledImage(object):
         scale_x = X / self.X_sub
         scale_y = Y / self.Y_sub
             
-        print(np.hstack(np.hstack(data)).shape, self.X * scale_x, self.Y * scale_y)
         merged = np.hstack(np.hstack(data))[int(self.offset_x * scale_x):int(self.X * scale_x), int(self.offset_y * scale_y):int(self.Y * scale_y)]
         return merged
 
