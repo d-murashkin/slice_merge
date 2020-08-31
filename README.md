@@ -6,6 +6,8 @@ Each tile can be accessed by its index.
 Also a list of all tiles is accessible.
 If each tile has been processed separately, the merge method can easily combine these tiles into a full-size image.
 
+![](slice_merge.svg)
+
 Example of use:
 ```python
 from PIL import Image
