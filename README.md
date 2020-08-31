@@ -20,7 +20,7 @@ Now, a list of tiles can be retrieved by
 ```python
 sliced_image.list_tiles()
 ```
-Let's apply a simple funtion that returns the Red channel of a RGB imput image.
+Let's apply a simple function that returns the Red channel of a RGB input image.
 First, define the function:
 ```python
 def get_red_channel(img):
@@ -32,7 +32,7 @@ red_tiles = [get_red_channel(tile) for tile in sliced_image.list_tiles()]
 ```
 or
 ```python
-red_tiles = sliced_image.apply(get_red_channel)
+red_tiles = sliced_image.apply(get_red_channel, parallel=False)
 ```
 And finally combine results into the full-size image:
 ```python
