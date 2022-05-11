@@ -18,16 +18,16 @@ class TiledImage(object):
         self.offset = offset
         try:
             self.offset_x, self.offset_y = offset
-        except:
+        except TypeError:
             self.offset_x = self.offset_y = offset
 
-        """ Dimentions of the input image """
+        """ Dimensions of the input image """
         if len(image.shape) == 2:
             image_copy = image[:, :, np.newaxis]
         elif len(image.shape) == 3:
             image_copy = image
         else:
-            print('Image has less than 2 dimentions or more than 3.')
+            print('Image has less than 2 dimensions or more than 3.')
             print('Currently such images are not supported.')
             return False
         self.X, self.Y, self.Z = image_copy.shape
@@ -43,7 +43,7 @@ class TiledImage(object):
         if tile_size:
             try:
                 self.X_sub, self.Y_sub = tile_size
-            except:
+            except TypeError:
                 self.X_sub = self.Y_sub = tile_size
 
             if self.keep_rest:
@@ -59,7 +59,7 @@ class TiledImage(object):
         else:
             try:
                 self.X_num, self.Y_num = number_of_tiles
-            except:
+            except TypeError:
                 self.X_num = self.Y_num = number_of_tiles
             if self.keep_rest:
                 self.X_sub = int(np.ceil(self.X / self.X_num))
@@ -75,17 +75,17 @@ class TiledImage(object):
         else:
             image_eq_div = image_copy[:image_eq_div.shape[0], :image_eq_div.shape[1]]
         self.data = np.array([np.hsplit(item, self.Y_num) for item in np.vsplit(image_eq_div, self.X_num)])
-    
+
     def list_tiles(self, tile_2d=False):
         i, j, X, Y, Z = self.data.shape
         reshaped = np.reshape(self.data, (i * j, X, Y, Z))
         if tile_2d:
             return reshaped[:, :, :, 0]
         return reshaped
-    
+
     def list_tile_indices(self):
         return [(i, j) for i in range(self.X_num) for j in range(self.Y_num)]
-    
+
     def merge(self, data):
         """ Merge the *data* 5D array with results into a 3D array image size of the original image.
         """
@@ -97,15 +97,16 @@ class TiledImage(object):
         X, Y = data[0].shape[1:3]
         scale_x = X / self.X_sub
         scale_y = Y / self.Y_sub
-            
-        merged = np.hstack(np.hstack(data))[int(self.offset_x * scale_x):int(self.X * scale_x), int(self.offset_y * scale_y):int(self.Y * scale_y)]
+
+        merged = np.hstack(np.hstack(data))[int(self.offset_x * scale_x):int(self.X * scale_x),
+                                            int(self.offset_y * scale_y):int(self.Y * scale_y)]
         return merged
 
     def image(self):
         """ Return the original 3D array.
         """
         return self.merge(self.data)
-    
+
     def apply(self, fucntion, parallel=False, tile_dim=3):
         """ Apply the specified function to each tile.
             Note, that lambda functions do not work when parallel=True.
@@ -122,7 +123,7 @@ class TiledImage(object):
         else:
             result = list(map(fucntion, list_tiles))
         return result
-    
+
     def get_tile(self, i, j):
         return self.data[i, j]
 
@@ -140,7 +141,7 @@ class TiledImage(object):
             return False
         try:
             self.data[i, j] = data
-        except:
+        except Exception:
             print('Something went wrong...')
             return False
 
