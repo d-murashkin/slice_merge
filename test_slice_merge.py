@@ -81,6 +81,13 @@ class TestTiledImage(unittest.TestCase):
         self.assertEqual(sliced.list_tiles(tile_2d=True).shape, (4, 4, 4))
         self.assertEqual(sliced.data.shape, (2, 2, 4, 4, 1))
         self.assertTrue(np.array_equal(sliced.list_tiles(tile_2d=True), result))
+    
+    def test_merge_overlayed(self):
+        data = np.arange(16).reshape((4, 4, 1))
+        sliced = TiledImage(data, tile_size=2, overlay=1, keep_rest=True)
+        res = list(map(lambda x: x[1:-1, 1:-1, :], sliced.list_tiles()))
+        merged = sliced.merge(res)
+        self.assertTrue(np.array_equal(merged, data))
 
 
 if __name__ == '__main__':
