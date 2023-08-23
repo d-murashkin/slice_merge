@@ -54,6 +54,33 @@ class TestTiledImage(unittest.TestCase):
         tile_by_index = sliced.get_tile(*tile_indices[1])
         tile_from_list = tile_list[1]
         self.assertTrue(np.array_equal(tile_from_list, tile_by_index))
+    
+    def test_overlay(self):
+        data = np.arange(16).reshape((4, 4, 1))
+        sliced = TiledImage(data, tile_size=2, overlay=1, keep_rest=True)
+        result = np.array([
+                          [[ 0,  0,  1,  2],
+                           [ 0,  0,  1,  2],
+                           [ 4,  4,  5,  6],
+                           [ 8,  8,  9, 10]],
+    
+                          [[ 1,  2,  3,  3],
+                           [ 1,  2,  3,  3],
+                           [ 5,  6,  7,  7],
+                           [ 9, 10, 11, 11]],
+    
+                          [[ 4,  4,  5,  6],
+                           [ 8,  8,  9, 10],
+                           [12, 12, 13, 14],
+                           [12, 12, 13, 14]],
+    
+                          [[ 5,  6,  7,  7],
+                           [ 9, 10, 11, 11],
+                           [13, 14, 15, 15],
+                           [13, 14, 15, 15]]])
+        self.assertEqual(sliced.list_tiles(tile_2d=True).shape, (4, 4, 4))
+        self.assertEqual(sliced.data.shape, (2, 2, 4, 4, 1))
+        self.assertTrue(np.array_equal(sliced.list_tiles(tile_2d=True), result))
 
 
 if __name__ == '__main__':

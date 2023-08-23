@@ -12,7 +12,7 @@ class TiledImage(object):
         Both options can be integers or tuples.
         keep_rest option defines weather tiles of a smaller size should be kept.
     """
-    def __init__(self, image, tile_size=0, number_of_tiles=0, keep_rest=True, offset=0):
+    def __init__(self, image, tile_size=0, number_of_tiles=0, keep_rest=True, offset=0, overlay=0):
         self.keep_rest = keep_rest
         self.tiles = []
         self.offset = offset
@@ -32,12 +32,17 @@ class TiledImage(object):
             return False
         self.X, self.Y, self.Z = image_copy.shape
 
-        """ If offset is not 0, extend the input image. """
-        if self.offset:
-            image_with_offset = np.zeros((self.X + self.offset_x, self.Y + self.offset_y, self.Z), dtype=image_copy.dtype)
-            image_with_offset[self.offset_x:, self.offset_y:] = image_copy
-            image_copy = image_with_offset
-            self.X, self.Y, self.Z = image_copy.shape
+        """ If offset or overlay is not 0, extend the input image. """
+        if self.offset_x > 0 or self.offset_y > 0 or overlay > 0:
+            image_copy_ext = np.zeros((image_copy.shape[0] + self.offset_x * 2 + overlay * 2, image_copy.shape[1] + self.offset_y * 2 + overlay * 2, image_copy.shape[2]), dtype=image_copy.dtype)
+            x = -self.offset_x - overlay if self.offset_x + overlay > 0 else None
+            y = -self.offset_y - overlay if self.offset_y + overlay > 0 else None
+            image_copy_ext[self.offset_x + overlay:x, self.offset_y + overlay:y, :] = image_copy
+            image_copy_ext[:self.offset_x + overlay, :, :] = image_copy_ext[self.offset_x + overlay: (self.offset_x + overlay) * 2, :, :][::-1, :, :]
+            image_copy_ext[-self.offset_x - overlay:, :, :] = image_copy_ext[-2 * (self.offset_x + overlay):-self.offset_x - overlay, :, :][::-1, :, :]
+            image_copy_ext[:, :self.offset_y + overlay, :] = image_copy_ext[:, self.offset_y + overlay: (self.offset_y + overlay) * 2, :][:, ::-1, :]
+            image_copy_ext[:, -self.offset_y - overlay:, :] = image_copy_ext[:, -2 * (self.offset_y + overlay):-self.offset_y - overlay, :][:, ::-1, :]
+            image_copy = image_copy_ext
 
         """ Set tile width and hight """
         if tile_size:
@@ -69,11 +74,16 @@ class TiledImage(object):
                 self.Y_sub = self.Y // self.Y_num
 
         """ Represent the image as an 5d array """
-        image_eq_div = np.zeros((self.X_sub * self.X_num, self.Y_sub * self.Y_num, self.Z), dtype=image.dtype)
-        if self.keep_rest:
-            image_eq_div[:self.X, :self.Y, :] = image_copy
-        else:
-            image_eq_div = image_copy[:image_eq_div.shape[0], :image_eq_div.shape[1]]
+        image_eq_div = np.zeros(((self.X_sub + overlay * 2) * self.X_num,
+                                 (self.Y_sub + overlay * 2) * self.Y_num,
+                                 self.Z), dtype=image.dtype)
+        for x in range(self.X_num):
+            for y in range(self.Y_num):
+                patch = image_copy[self.X_sub * x: self.X_sub * (x + 1) + 2 * overlay,
+                                   self.Y_sub * y: self.Y_sub * (y + 1) + 2 * overlay, :]
+                image_eq_div[(self.X_sub + 2 * overlay) * x:min((self.X_sub + overlay * 2) * (x + 1), (self.X_sub + 2 * overlay) * x + patch.shape[0]),
+                             (self.Y_sub + 2 * overlay) * y:min((self.Y_sub + overlay * 2) * (y + 1), (self.Y_sub + 2 * overlay) * y + patch.shape[1]),
+                             :] = patch
         self.data = np.array([np.hsplit(item, self.Y_num) for item in np.vsplit(image_eq_div, self.X_num)])
 
     def list_tiles(self, tile_2d=False):
@@ -90,7 +100,7 @@ class TiledImage(object):
         """ Merge the *data* 5D array with results into a 3D array image size of the original image.
         """
         """ If data is a list of tiles reshape it into a 2D array of tiles. """
-        if type(data) == list:
+        if type(data) == list or data.ndim == 4:
             shape = data[0].shape
             data = np.array(data).reshape(self.X_num, self.Y_num, *shape)
 
@@ -137,7 +147,7 @@ class TiledImage(object):
             print('Data should be 2d or 3d array, got data shape {0}'.format(data.shape))
             return False
         if (X, Y, Z) != (self.X_sub, self.Y_sub, self.Z):
-            print("data dimentions {0} do not correspond the tile size {1}".forman(data.shape, (self.X_sub, self.Y_sub, self.Z)))
+            print("data dimensions {0} do not correspond the tile size {1}".format(data.shape, (self.X_sub, self.Y_sub, self.Z)))
             return False
         try:
             self.data[i, j] = data
