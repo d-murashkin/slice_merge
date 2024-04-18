@@ -16,6 +16,7 @@ class TiledImage(object):
         self.keep_rest = keep_rest
         self.tiles = []
         self.offset = offset
+        self.overlay = overlay
         try:
             self.offset_x, self.offset_y = offset
         except TypeError:
@@ -105,8 +106,8 @@ class TiledImage(object):
             data = np.array(data).reshape(self.X_num, self.Y_num, *shape)
 
         X, Y = data[0].shape[1:3]
-        scale_x = X / self.X_sub
-        scale_y = Y / self.Y_sub
+        scale_x = X / (self.X_sub + 2 * self.overlay)
+        scale_y = Y / (self.Y_sub + 2 * self.overlay)
 
         merged = np.hstack(np.hstack(data))[int(self.offset_x * scale_x):int(self.X * scale_x),
                                             int(self.offset_y * scale_y):int(self.Y * scale_y)]
@@ -117,7 +118,7 @@ class TiledImage(object):
         """
         return self.merge(self.data)
 
-    def apply(self, fucntion, parallel=False, tile_dim=3):
+    def apply(self, function, parallel=False, tile_dim=3):
         """ Apply the specified function to each tile.
             Note, that lambda functions do not work when parallel=True.
             Also note, this is not an in-place operation.
@@ -129,9 +130,9 @@ class TiledImage(object):
         if parallel:
             from multiprocessing import Pool
             pool = Pool()
-            result = pool.map(fucntion, list_tiles)
+            result = pool.map(function, list_tiles)
         else:
-            result = list(map(fucntion, list_tiles))
+            result = list(map(function, list_tiles))
         return result
 
     def get_tile(self, i, j):
