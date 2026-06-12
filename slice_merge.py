@@ -106,8 +106,10 @@ class TiledImage(object):
             data = np.array(data).reshape(self.X_num, self.Y_num, *shape)
 
         X, Y = data[0].shape[1:3]
-        scale_x = X / (self.X_sub + 2 * self.overlay)
-        scale_y = Y / (self.Y_sub + 2 * self.overlay)
+        base_x = self.X_sub if X == self.X_sub else self.X_sub + 2 * self.overlay
+        base_y = self.Y_sub if Y == self.Y_sub else self.Y_sub + 2 * self.overlay
+        scale_x = X / base_x
+        scale_y = Y / base_y
 
         merged = np.hstack(np.hstack(data))[int(self.offset_x * scale_x):int(self.X * scale_x),
                                             int(self.offset_y * scale_y):int(self.Y * scale_y)]
