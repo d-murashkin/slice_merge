@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slice-merge"
+version = "0.1.0"
+description = "Slice image arrays into tiles and merge processed tiles"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+images = ["Pillow"]
+
+[tool.setuptools]
+packages = ["slice_merge"]
+package-dir = { "" = "src" }
+include-package-data = false

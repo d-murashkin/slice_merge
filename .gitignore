@@ -3,3 +3,7 @@
 __pycache__/
 config/local.yaml
 .pytest_cache/
+.venv/
+*.egg-info/
+build/
+dist/
