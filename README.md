@@ -1,40 +1,55 @@
-Slice and Merge provides a tool for slicing and merging large images.
-This can make it easier to process large images.
-The main class is TiledImage.
-It represents a 3D array as a 5D array of tiles.
-Each tile can be accessed by its index.
-Also a list of all tiles is accessible.
-If each tile has been processed separately, the merge method can easily combine these tiles into a full-size image.
+`TiledImage` splits a NumPy image into a grid of tiles that you can process
+individually and merge back into an image.
 
 ![](slice_merge.svg)
 
-Example of use:
+## Example: extract the red channel
+
 ```python
-from PIL import Image
+import numpy as np
 from slice_merge.slice_merge import TiledImage
-path_to_image = '<path to your image>'
-image = np.array(Image.open(path_to_image))
-sliced_image = TiledImage(image)
+
+image = np.arange(8 * 8 * 3).reshape(8, 8, 3)  # rows, columns, RGB
+tiled = TiledImage(image, tile_size=4, overlay=1)
+
+def get_red_channel(tile):
+    return tile[:, :, 0]
+
+red_tiles = tiled.apply(get_red_channel)
+red = tiled.merge(red_tiles)  # 2-D, equal to image[:, :, 0]
 ```
-Now, a list of tiles can be retrieved by
-```python
-sliced_image.list_tiles()
-```
-Let's apply a simple function that returns the Red channel of a RGB input image.
-First, define the function:
-```python
-def get_red_channel(img):
-    return img[:, :, 0]
-```
-Then apply the function to every tile:
-```python
-red_tiles = [get_red_channel(tile) for tile in sliced_image.list_tiles()]
-```
-or
-```python
-red_tiles = sliced_image.apply(get_red_channel, parallel=False)
-```
-And finally combine results into the full-size image:
-```python
-red_full_size = sliced_image.merge(red_tiles)
-```
+
+`list_tiles()` gives you the tiles in row-major order for manual processing.
+`apply()` returns one result per tile and leaves the stored tiles unchanged,
+even if the callback modifies its input.
+
+## Grid and padding
+
+Supply `tile_size` (the core size, excluding the halo) or `number_of_tiles`.
+An integer applies to both spatial axes; pairs are in `(rows, columns)` order.
+`offset=(1, 2)` places the first image pixel at row 1, column 2 of the tile
+grid. By default, `keep_rest=True` retains the whole image, including partial
+edge tiles. With `keep_rest=False`, trailing pixels outside the grid are
+dropped. `image()` reconstructs only the retained input region.
+
+`overlay` adds a halo of that many pixels on each side of every core. Halos
+use neighboring pixels where available. When an offset or halo is present,
+padding beyond the image uses symmetric reflection (the edge pixel repeats).
+With neither an offset nor a halo, unused cells in partial tiles stay zero.
+Padding affects only the spatial axes, not channels.
+
+## Merging and replacing tiles
+
+- `merge(results)` defaults to `tile_layout="auto"`. With a halo, it strips
+  the halo from results of the original full-tile size and accepts results
+  of the original core size unchanged. It rejects other spatial sizes rather
+  than guessing. Without a halo, results are already cores and may be resized.
+- For resized cores with a halo, use `merge(results, tile_layout="core")`.
+  If you resized whole tiles, trim the halo in **output pixel coordinates**
+  before merging. Explicit core mode never strips a halo, even if the
+  resized core happens to match the original full-tile size.
+- `set_tile(i, j, data)` replaces one full tile or just its core. A core
+  replacement leaves that tile's halo intact. Single-channel replacements
+  can be 2-D; an incompatible shape returns `False`. Neighboring halos are
+  not refreshed. Before another operation that uses neighborhoods, build a
+  new `TiledImage` from `tiled.image()` to recompute the halos.
